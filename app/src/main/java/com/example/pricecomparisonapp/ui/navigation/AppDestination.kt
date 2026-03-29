@@ -4,6 +4,6 @@ enum class AppDestination(val route: String, val title: String) {
     Home("home", "Home"),
     List("list", "Products"),
     Details("details", "Details"),
-    Form("form", "Add Product"),
-    Favorites("favorites", "Favorites")
+    Form("form", "Add"),
+    Favorites("favorites", "Favs")
 }
