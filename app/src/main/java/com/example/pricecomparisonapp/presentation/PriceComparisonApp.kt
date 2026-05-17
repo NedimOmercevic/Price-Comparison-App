@@ -1,16 +1,12 @@
 package com.example.pricecomparisonapp.presentation
 
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.foundation.layout.padding
-import androidx.compose.ui.platform.testTag
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -25,14 +21,12 @@ import com.example.pricecomparisonapp.presentation.ui.screens.DetailsScreen
 import com.example.pricecomparisonapp.presentation.ui.screens.FavoritesScreen
 import com.example.pricecomparisonapp.presentation.ui.screens.HomeScreen
 import com.example.pricecomparisonapp.presentation.ui.screens.ProductsScreen
-import com.example.pricecomparisonapp.presentation.viewmodel.ProductsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PriceComparisonApp(viewModel: ProductsViewModel = viewModel()) {
+fun PriceComparisonApp() {
     AppTheme {
         val navController = rememberNavController()
-        val uiState by viewModel.uiState.collectAsStateWithLifecycle()
         val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
 
         Scaffold(
@@ -53,49 +47,34 @@ fun PriceComparisonApp(viewModel: ProductsViewModel = viewModel()) {
             NavHost(
                 navController = navController,
                 startDestination = AppRoutes.Home.route,
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .testTag("root_nav_host")
+                modifier = Modifier.padding(innerPadding)
             ) {
                 composable(AppRoutes.Home.route) {
-                    HomeScreen(
-                        uiState = uiState,
-                        onSearchChange = viewModel::updateSearchQuery,
-                        onCitySelect = viewModel::setCity
-                    )
+                    HomeScreen()
                 }
                 composable(AppRoutes.Products.route) {
                     ProductsScreen(
-                        uiState = uiState,
-                        onCategorySelect = viewModel::setCategory,
                         onProductClick = { productId ->
-                            viewModel.selectProduct(productId)
-                            navController.navigate(AppRoutes.Details.createRoute(productId, "products"))
-                        },
-                        onToggleFavorite = viewModel::toggleFavorite
+                            navController.navigate(
+                                AppRoutes.Details.createRoute(productId.toInt(), "products")
+                            )
+                        }
                     )
                 }
                 composable(AppRoutes.Favorites.route) {
                     FavoritesScreen(
-                        uiState = uiState,
-                        onCitySelect = viewModel::setCity,
                         onOpenDetails = { productId ->
-                            viewModel.selectProduct(productId)
-                            navController.navigate(AppRoutes.Details.createRoute(productId, "favorites"))
-                        },
-                        onToggleFavorite = viewModel::toggleFavorite
+                            navController.navigate(
+                                AppRoutes.Details.createRoute(productId.toInt(), "favorites")
+                            )
+                        }
                     )
                 }
                 composable(AppRoutes.AddProduct.route) {
                     AddProductScreen(
-                        uiState = uiState,
-                        onNameChange = viewModel::updateNameInput,
-                        onCategoryChange = viewModel::updateCategoryInput,
-                        onStoreChange = viewModel::updateStoreInput,
-                        onPriceChange = viewModel::updatePriceInput,
-                        onSubmit = {
-                            if (viewModel.submitProduct()) {
-                                navController.navigate(AppRoutes.Products.route)
+                        onSaved = {
+                            navController.navigate(AppRoutes.Products.route) {
+                                launchSingleTop = true
                             }
                         }
                     )
@@ -106,17 +85,8 @@ fun PriceComparisonApp(viewModel: ProductsViewModel = viewModel()) {
                         navArgument("productId") { type = NavType.IntType },
                         navArgument("origin") { type = NavType.StringType }
                     )
-                ) { entry ->
-                    val productId = entry.arguments?.getInt("productId") ?: -1
-                    val origin = entry.arguments?.getString("origin").orEmpty()
-                    if (uiState.selectedProductId != productId) {
-                        viewModel.selectProduct(productId)
-                    }
-                    DetailsScreen(
-                        uiState = uiState,
-                        origin = origin,
-                        onBack = { navController.popBackStack() }
-                    )
+                ) {
+                    DetailsScreen(onBack = { navController.popBackStack() })
                 }
             }
         }

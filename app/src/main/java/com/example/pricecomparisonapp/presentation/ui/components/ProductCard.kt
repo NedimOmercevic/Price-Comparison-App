@@ -12,11 +12,11 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.pricecomparisonapp.data.model.Product
+import com.example.pricecomparisonapp.model.data.ProductItem
 
 @Composable
 fun ProductCard(
-    product: Product,
+    product: ProductItem,
     onOpen: () -> Unit,
     onToggleFavorite: () -> Unit
 ) {
@@ -33,8 +33,8 @@ fun ProductCard(
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(product.name)
-                Text("${product.lowestPriceBam} BAM • ${product.storeName}")
-                Text(product.category)
+                Text("${product.priceBam} BAM • ${product.storeName}")
+                Text(product.categoryName)
             }
             TextButton(onClick = onToggleFavorite) {
                 Text(if (product.isFavorite) "Unfav" else "Fav")
