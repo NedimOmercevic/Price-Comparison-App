@@ -55,7 +55,7 @@ class ProductRepositoryImpl @Inject constructor(
         val cityId = cityDao.getByName(cityName)?.id
             ?: cityDao.insertAll(listOf(CityEntity(name = cityName))).first()
 
-        val storeId = storeDao.getByNameAndCity(storeName, cityId)
+        val storeId = storeDao.getByNameAndCity(storeName, cityId)?.id
             ?: storeDao.insert(StoreEntity(name = storeName, cityId = cityId))
 
         val productId = productDao.insert(

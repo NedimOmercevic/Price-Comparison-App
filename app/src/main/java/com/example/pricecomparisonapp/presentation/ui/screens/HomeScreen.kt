@@ -14,6 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -72,7 +73,14 @@ fun HomeScreenStateless(
                     items(data.cities) { city ->
                         AssistChip(
                             onClick = { onCitySelect(city) },
-                            label = { Text(if (data.selectedCity == city) "$city ✓" else city) }
+                            label = {
+                                Text(
+                                    text = if (data.selectedCity == city) "$city ✓" else city,
+                                    maxLines = 1,
+                                    softWrap = false,
+                                    overflow = TextOverflow.Clip
+                                )
+                            }
                         )
                     }
                 }

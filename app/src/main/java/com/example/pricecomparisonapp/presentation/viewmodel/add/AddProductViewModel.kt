@@ -2,6 +2,7 @@ package com.example.pricecomparisonapp.presentation.viewmodel.add
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.pricecomparisonapp.model.data.local.util.AppDatabaseInitializer
 import com.example.pricecomparisonapp.model.repository.FiltersRepository
 import com.example.pricecomparisonapp.model.repository.ProductRepository
 import com.example.pricecomparisonapp.presentation.common.ScreenUiState
@@ -31,7 +32,8 @@ data class AddProductFormData(
 @HiltViewModel
 class AddProductViewModel @Inject constructor(
     private val productRepository: ProductRepository,
-    private val filtersRepository: FiltersRepository
+    private val filtersRepository: FiltersRepository,
+    private val databaseInitializer: AppDatabaseInitializer
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<ScreenUiState<AddProductFormData>>(ScreenUiState.Init)
@@ -40,6 +42,7 @@ class AddProductViewModel @Inject constructor(
     init {
         _uiState.value = ScreenUiState.Success(AddProductFormData())
         viewModelScope.launch {
+            databaseInitializer.ensureReady()
             filtersRepository.selectedCity.collect { city ->
                 updateForm { it.copy(selectedCity = city) }
             }
@@ -60,6 +63,7 @@ class AddProductViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = ScreenUiState.Loading
             try {
+                databaseInitializer.ensureReady()
                 productRepository.addProduct(
                     name = form.nameInput,
                     categoryName = form.categoryInput,

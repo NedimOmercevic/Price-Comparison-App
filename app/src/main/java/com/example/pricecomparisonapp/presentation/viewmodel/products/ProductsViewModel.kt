@@ -3,6 +3,7 @@ package com.example.pricecomparisonapp.presentation.viewmodel.products
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.pricecomparisonapp.model.data.ProductItem
+import com.example.pricecomparisonapp.model.data.local.util.AppDatabaseInitializer
 import com.example.pricecomparisonapp.model.repository.CategoryRepository
 import com.example.pricecomparisonapp.model.repository.FiltersRepository
 import com.example.pricecomparisonapp.model.repository.ProductRepository
@@ -27,7 +28,8 @@ data class ProductsSuccessData(
 class ProductsViewModel @Inject constructor(
     private val productRepository: ProductRepository,
     private val categoryRepository: CategoryRepository,
-    private val filtersRepository: FiltersRepository
+    private val filtersRepository: FiltersRepository,
+    private val databaseInitializer: AppDatabaseInitializer
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<ScreenUiState<ProductsSuccessData>>(ScreenUiState.Init)
@@ -41,6 +43,7 @@ class ProductsViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = ScreenUiState.Loading
             try {
+                databaseInitializer.ensureReady()
                 combine(
                     productRepository.observeProducts(),
                     categoryRepository.observeCategoryNames(),

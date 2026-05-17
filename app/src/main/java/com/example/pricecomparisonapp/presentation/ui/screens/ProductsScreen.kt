@@ -54,6 +54,10 @@ fun ProductsScreenStateless(
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 SectionHeader("Products in ${data.selectedCity}")
+                Text(
+                    text = "Saved offers are stored in Room and filtered by selected city.",
+                    maxLines = 2
+                )
                 FilterChipRow(
                     items = data.categories,
                     selected = data.selectedCategory,
