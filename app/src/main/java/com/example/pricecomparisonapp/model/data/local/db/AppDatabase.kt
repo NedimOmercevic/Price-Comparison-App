@@ -8,8 +8,10 @@ import com.example.pricecomparisonapp.model.data.local.dao.CityDao
 import com.example.pricecomparisonapp.model.data.local.dao.FavoriteDao
 import com.example.pricecomparisonapp.model.data.local.dao.PriceOfferDao
 import com.example.pricecomparisonapp.model.data.local.dao.ProductDao
+import com.example.pricecomparisonapp.model.data.local.dao.ProductMetaDao
 import com.example.pricecomparisonapp.model.data.local.dao.StoreDao
 import com.example.pricecomparisonapp.model.data.local.entity.CategoryEntity
+import com.example.pricecomparisonapp.model.data.local.entity.ProductMetaEntity
 import com.example.pricecomparisonapp.model.data.local.entity.CityEntity
 import com.example.pricecomparisonapp.model.data.local.entity.FavoriteEntity
 import com.example.pricecomparisonapp.model.data.local.entity.PriceOfferEntity
@@ -23,9 +25,10 @@ import com.example.pricecomparisonapp.model.data.local.entity.StoreEntity
         CategoryEntity::class,
         ProductEntity::class,
         PriceOfferEntity::class,
-        FavoriteEntity::class
+        FavoriteEntity::class,
+        ProductMetaEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -36,4 +39,5 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun priceOfferDao(): PriceOfferDao
     abstract fun favoriteDao(): FavoriteDao
     abstract fun catalogDao(): CatalogDao
+    abstract fun productMetaDao(): ProductMetaDao
 }

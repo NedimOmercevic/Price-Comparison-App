@@ -6,6 +6,7 @@ import com.example.pricecomparisonapp.model.data.ProductItem
 import com.example.pricecomparisonapp.model.data.local.util.AppDatabaseInitializer
 import com.example.pricecomparisonapp.model.repository.CategoryRepository
 import com.example.pricecomparisonapp.model.repository.FiltersRepository
+import com.example.pricecomparisonapp.model.repository.ProductNetworkRepository
 import com.example.pricecomparisonapp.model.repository.ProductRepository
 import com.example.pricecomparisonapp.presentation.common.ScreenUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -26,6 +27,7 @@ data class ProductsSuccessData(
 
 @HiltViewModel
 class ProductsViewModel @Inject constructor(
+    private val productNetworkRepository: ProductNetworkRepository,
     private val productRepository: ProductRepository,
     private val categoryRepository: CategoryRepository,
     private val filtersRepository: FiltersRepository,
@@ -44,6 +46,17 @@ class ProductsViewModel @Inject constructor(
             _uiState.value = ScreenUiState.Loading
             try {
                 databaseInitializer.ensureReady()
+                productNetworkRepository.getProducts()
+                    .onSuccess { products ->
+                        productRepository.syncFromNetwork(products)
+                    }
+                    .onFailure { error ->
+                        _uiState.value = ScreenUiState.Error(
+                            error.message ?: "Failed to load products from network"
+                        )
+                        return@launch
+                    }
+
                 combine(
                     productRepository.observeProducts(),
                     categoryRepository.observeCategoryNames(),
@@ -82,6 +95,19 @@ class ProductsViewModel @Inject constructor(
     fun onToggleFavorite(productId: Long) {
         viewModelScope.launch {
             productRepository.toggleFavorite(productId)
+        }
+    }
+
+    fun refreshProducts() {
+        viewModelScope.launch {
+            _uiState.value = ScreenUiState.Loading
+            productNetworkRepository.getProducts()
+                .onSuccess { productRepository.syncFromNetwork(it) }
+                .onFailure { error ->
+                    _uiState.value = ScreenUiState.Error(
+                        error.message ?: "Failed to refresh products"
+                    )
+                }
         }
     }
 }

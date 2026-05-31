@@ -4,7 +4,9 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.pricecomparisonapp.model.data.ProductItem
+import com.example.pricecomparisonapp.model.repository.ProductNetworkRepository
 import com.example.pricecomparisonapp.model.repository.ProductRepository
+import com.example.pricecomparisonapp.model.repository.mappers.buildUpdateProductRequest
 import com.example.pricecomparisonapp.presentation.common.ScreenUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,6 +23,7 @@ data class DetailsSuccessData(
 @HiltViewModel
 class DetailsViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
+    private val productNetworkRepository: ProductNetworkRepository,
     private val productRepository: ProductRepository
 ) : ViewModel() {
 
@@ -39,16 +42,16 @@ class DetailsViewModel @Inject constructor(
     private fun loadDetails() {
         viewModelScope.launch {
             _uiState.value = ScreenUiState.Loading
-            try {
-                val product = productRepository.getProduct(productId)
-                if (product == null) {
-                    _uiState.value = ScreenUiState.Error("Product not found")
-                } else {
+            productNetworkRepository.getProduct(productId)
+                .onSuccess { dto ->
+                    val product = productRepository.mapDtoToProductItem(dto)
                     _uiState.value = ScreenUiState.Success(DetailsSuccessData(product, origin))
                 }
-            } catch (e: Exception) {
-                _uiState.value = ScreenUiState.Error(e.message ?: "Failed to load details")
-            }
+                .onFailure { error ->
+                    _uiState.value = ScreenUiState.Error(
+                        error.message ?: "Failed to load details"
+                    )
+                }
         }
     }
 
@@ -61,7 +64,41 @@ class DetailsViewModel @Inject constructor(
 
     fun onDeleteProduct() {
         viewModelScope.launch {
-            productRepository.deleteProduct(productId)
+            productNetworkRepository.deleteProduct(productId)
+                .onSuccess {
+                    productRepository.removeProductFromCache(productId)
+                }
+                .onFailure { error ->
+                    _uiState.value = ScreenUiState.Error(
+                        error.message ?: "Failed to delete product"
+                    )
+                }
+        }
+    }
+
+    fun onRenameProduct(newName: String) {
+        val current = (_uiState.value as? ScreenUiState.Success)?.data?.product ?: return
+        if (newName.isBlank()) return
+
+        viewModelScope.launch {
+            _uiState.value = ScreenUiState.Loading
+            val request = buildUpdateProductRequest(
+                name = newName,
+                categoryName = current.categoryName,
+                storeName = current.storeName,
+                cityName = current.cityName,
+                priceBam = current.priceBam
+            )
+            productNetworkRepository.updateProduct(productId, request)
+                .onSuccess {
+                    productRepository.refreshProducts()
+                    loadDetails()
+                }
+                .onFailure { error ->
+                    _uiState.value = ScreenUiState.Error(
+                        error.message ?: "Failed to update product"
+                    )
+                }
         }
     }
 }

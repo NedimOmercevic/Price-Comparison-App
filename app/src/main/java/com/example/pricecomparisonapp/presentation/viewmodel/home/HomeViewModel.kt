@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.pricecomparisonapp.model.data.local.util.AppDatabaseInitializer
 import com.example.pricecomparisonapp.model.repository.CityRepository
 import com.example.pricecomparisonapp.model.repository.FiltersRepository
+import com.example.pricecomparisonapp.model.repository.ProductNetworkRepository
 import com.example.pricecomparisonapp.model.repository.ProductRepository
 import com.example.pricecomparisonapp.presentation.common.ScreenUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -24,6 +25,7 @@ data class HomeSuccessData(
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
+    private val productNetworkRepository: ProductNetworkRepository,
     private val productRepository: ProductRepository,
     private val cityRepository: CityRepository,
     private val filtersRepository: FiltersRepository,
@@ -42,6 +44,17 @@ class HomeViewModel @Inject constructor(
             _uiState.value = ScreenUiState.Loading
             try {
                 databaseInitializer.ensureReady()
+                productNetworkRepository.getProducts()
+                    .onSuccess { products ->
+                        productRepository.syncFromNetwork(products)
+                    }
+                    .onFailure { error ->
+                        _uiState.value = ScreenUiState.Error(
+                            error.message ?: "Failed to load home data from network"
+                        )
+                        return@launch
+                    }
+
                 combine(
                     cityRepository.observeCityNames(),
                     productRepository.observeProducts(),

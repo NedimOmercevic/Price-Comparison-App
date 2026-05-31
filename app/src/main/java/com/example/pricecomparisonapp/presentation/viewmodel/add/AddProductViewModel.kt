@@ -4,7 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.pricecomparisonapp.model.data.local.util.AppDatabaseInitializer
 import com.example.pricecomparisonapp.model.repository.FiltersRepository
+import com.example.pricecomparisonapp.model.repository.ProductNetworkRepository
 import com.example.pricecomparisonapp.model.repository.ProductRepository
+import com.example.pricecomparisonapp.model.repository.mappers.buildCreateProductRequest
 import com.example.pricecomparisonapp.presentation.common.ScreenUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -31,6 +33,7 @@ data class AddProductFormData(
 
 @HiltViewModel
 class AddProductViewModel @Inject constructor(
+    private val productNetworkRepository: ProductNetworkRepository,
     private val productRepository: ProductRepository,
     private val filtersRepository: FiltersRepository,
     private val databaseInitializer: AppDatabaseInitializer
@@ -64,15 +67,29 @@ class AddProductViewModel @Inject constructor(
             _uiState.value = ScreenUiState.Loading
             try {
                 databaseInitializer.ensureReady()
-                productRepository.addProduct(
+                val request = buildCreateProductRequest(
                     name = form.nameInput,
                     categoryName = form.categoryInput,
                     storeName = form.storeInput,
                     cityName = form.selectedCity,
                     priceBam = form.priceInput.toDouble()
                 )
-                _uiState.value = ScreenUiState.Success(AddProductFormData(selectedCity = form.selectedCity))
-                onSuccess()
+                productNetworkRepository.createProduct(request)
+                    .onSuccess { createdProduct ->
+                        productRepository.saveProductMeta(
+                            productId = createdProduct.id.toLong(),
+                            storeName = form.storeInput,
+                            cityName = form.selectedCity
+                        )
+                        productRepository.refreshProducts()
+                        _uiState.value = ScreenUiState.Success(AddProductFormData(selectedCity = form.selectedCity))
+                        onSuccess()
+                    }
+                    .onFailure { error ->
+                        _uiState.value = ScreenUiState.Error(
+                            error.message ?: "Failed to save product"
+                        )
+                    }
             } catch (e: Exception) {
                 _uiState.value = ScreenUiState.Error(e.message ?: "Failed to save product")
             }

@@ -8,6 +8,7 @@ import com.example.pricecomparisonapp.model.data.local.dao.CityDao
 import com.example.pricecomparisonapp.model.data.local.dao.FavoriteDao
 import com.example.pricecomparisonapp.model.data.local.dao.PriceOfferDao
 import com.example.pricecomparisonapp.model.data.local.dao.ProductDao
+import com.example.pricecomparisonapp.model.data.local.dao.ProductMetaDao
 import com.example.pricecomparisonapp.model.data.local.dao.StoreDao
 import com.example.pricecomparisonapp.model.data.local.db.AppDatabase
 import dagger.Module
@@ -28,7 +29,8 @@ object DatabaseModule {
             context,
             AppDatabase::class.java,
             "price_comparison.db"
-        ).build()
+        ).fallbackToDestructiveMigration()
+            .build()
     }
 
     @Provides fun provideCityDao(db: AppDatabase): CityDao = db.cityDao()
@@ -38,4 +40,5 @@ object DatabaseModule {
     @Provides fun providePriceOfferDao(db: AppDatabase): PriceOfferDao = db.priceOfferDao()
     @Provides fun provideFavoriteDao(db: AppDatabase): FavoriteDao = db.favoriteDao()
     @Provides fun provideCatalogDao(db: AppDatabase): CatalogDao = db.catalogDao()
+    @Provides fun provideProductMetaDao(db: AppDatabase): ProductMetaDao = db.productMetaDao()
 }
