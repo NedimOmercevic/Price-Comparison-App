@@ -21,4 +21,10 @@ interface FavoriteDao {
 
     @Query("SELECT EXISTS(SELECT 1 FROM favorites WHERE productId = :productId)")
     suspend fun isFavorite(productId: Long): Boolean
+
+    @Query("SELECT productId FROM favorites")
+    suspend fun getFavoriteIds(): List<Long>
+
+    @Query("DELETE FROM favorites WHERE productId = :productId")
+    suspend fun deleteByProductId(productId: Long)
 }

@@ -4,6 +4,8 @@ import com.example.pricecomparisonapp.model.repository.CategoryRepository
 import com.example.pricecomparisonapp.model.repository.CategoryRepositoryImpl
 import com.example.pricecomparisonapp.model.repository.CityRepository
 import com.example.pricecomparisonapp.model.repository.CityRepositoryImpl
+import com.example.pricecomparisonapp.model.repository.ProductNetworkRepository
+import com.example.pricecomparisonapp.model.repository.ProductNetworkRepositoryImpl
 import com.example.pricecomparisonapp.model.repository.ProductRepository
 import com.example.pricecomparisonapp.model.repository.ProductRepositoryImpl
 import dagger.Binds
@@ -18,6 +20,10 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindProductRepository(impl: ProductRepositoryImpl): ProductRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindProductNetworkRepository(impl: ProductNetworkRepositoryImpl): ProductNetworkRepository
 
     @Binds
     @Singleton
