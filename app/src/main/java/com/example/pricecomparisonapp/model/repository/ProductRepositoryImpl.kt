@@ -115,7 +115,7 @@ class ProductRepositoryImpl @Inject constructor(
         }
     }
 
-    override fun observeFavorites(): Flow<List<ProductItem> {
+    override fun observeFavorites(): Flow<List<ProductItem>> {
         return observeProducts().map { products ->
             products.filter { it.isFavorite }
         }
